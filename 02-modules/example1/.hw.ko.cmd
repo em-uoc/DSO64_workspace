@@ -1,0 +1,1 @@
+savedcmd_hw.ko := ld -r -m elf_x86_64 --fatal-warnings -z noexecstack --no-warn-rwx-segments --build-id=sha1  -T /home/enricm/DSO64b/linux-7.1.4/scripts/module.lds -o hw.ko hw.o hw.mod.o .module-common.o

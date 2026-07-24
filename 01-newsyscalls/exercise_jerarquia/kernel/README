@@ -1,0 +1,13 @@
+//
+// kernel code that counts the number of child processes of the current process
+//
+
+struct task_struct *child;
+int count = 0;
+
+rcu_read_lock();
+list_for_each_entry_rcu(child, &current->children, sibling) {
+  count++;
+}
+rcu_read_unlock();
+
