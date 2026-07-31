@@ -1,5 +1,5 @@
 ifneq ($(KERNELRELEASE),)
-	obj-m := sysdemo.o 
+	obj-m := kprobe.o 
 else
 	KERNELDIR := ../../../$(LINUX_VERSION)
 	PWD := $(shell pwd)

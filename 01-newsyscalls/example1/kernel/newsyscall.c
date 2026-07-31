@@ -3,7 +3,7 @@
 
 asmlinkage long sys_new1 (void)
 {
-  printk ("Hello world\n");
+  pr_info ("Hello world\n");
   return 27;
 }
 
@@ -14,7 +14,7 @@ SYSCALL_DEFINE0 (new1)
 
 asmlinkage long sys_new2 (int par)
 {
-  printk ("Hello world %d\n", par);
+  pr_info ("Hello world %d\n", par);
   return par + 1;
 }
 
