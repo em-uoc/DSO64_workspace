@@ -1,5 +1,5 @@
 
-PROGS  = testnew
+PROGS  = test_nch
 CFLAGS = -static
 
 all: $(PROGS)
