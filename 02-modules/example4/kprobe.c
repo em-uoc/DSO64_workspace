@@ -1,3 +1,5 @@
+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+
 #include <linux/module.h>
 #include <linux/kprobes.h>
 
@@ -18,7 +20,7 @@ static int handler_pre(struct kprobe *p, struct pt_regs *regs)
         char buf[256];
         if (strncpy_from_user(buf, filename, sizeof(buf)) > 0) {
             if (strncmp(buf, TRACE_FILE, sizeof(TRACE_FILE)) == 0) {
-                pr_info("kprobe: Open %s\n", TRACE_FILE);
+                pr_info("Open %s\n", TRACE_FILE);
             }
         }
     }
@@ -34,18 +36,18 @@ static int __init kprobe_init(void)
 {
     int ret = register_kprobe(&kp);
     if (ret < 0) {
-        pr_err("kprobe: Error at register time: %d\n", ret);
+        pr_err("Error at register time: %d\n", ret);
         return ret;
     }
 
-    pr_info("kprobe: module loaded (monitoring opens on %s)\n", TRACE_FILE);
+    pr_info("module loaded (monitoring opens on %s)\n", TRACE_FILE);
     return 0;
 }
 
 static void __exit kprobe_exit(void)
 {
     unregister_kprobe(&kp);
-    pr_info("kprobe: module unloaded\n");
+    pr_info("module unloaded\n");
 }
 
 module_init(kprobe_init);

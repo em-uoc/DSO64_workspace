@@ -6,3 +6,5 @@
 *.symvers
 *.mod
 *.mod.c
+*.c~
+*.c.swp

@@ -9,8 +9,6 @@
 #include <signal.h>
 #include <string.h>
 
-pid_t main_process;
-
 // Custom assert 
 #define assert(expr, ...) do { \
     int ok = !!(expr); \
@@ -22,9 +20,9 @@ pid_t main_process;
 } while (0)
 
 #define NTESTS  10              // Number of randomly created tests
-#define MAX_CH 200              // Max number of channels in the test
+#define MAX_CH 200              // Max number of channels at each test
 
-int max_ch;                     // Max number of open files
+int max_ch;                     // System-wide limit on the number of channels of each process
 
 #define __NR_get_nch 602        // syscall code
 
@@ -63,7 +61,7 @@ test_random (int n)
           while (n)
             {
               int target = rand () % max_ch;
-              // if target channel is unused, take it
+              // if target channel is unused, take it and decrease "n"
               if ((fcntl (target, F_GETFD) == -1) && (errno == EBADF))
                 {
                   dup2 (first, target);
@@ -94,7 +92,7 @@ void
 sigabrt (int signo)
 {
   char *s = "\nAbort. A test failed \n";
-  if (getpid () == main_process)
+  if (getpid () == getpgrp())  // Just the leader process prints the message
     write (1, s, strlen (s));
 
   exit (1);
@@ -103,13 +101,13 @@ sigabrt (int signo)
 int
 main (int argc, char *argv[])
 {
-  main_process = getpid ();
+  // Deals with test errors
   signal (SIGABRT, sigabrt);
 
   // Test invalid argument
-  assert ((get_nch (-5) == -1) && (errno == EINVAL));
+  assert ((get_nch (-5) == -1) && (errno == EINVAL), "EINVAL=%d, errno=%d", EINVAL, errno);
 
-  // Test myself twice
+  // Test myself twice (standard channels)
   assert (get_nch (getpid ()) == 3);
   assert (get_nch (0) == 3);
 
@@ -124,7 +122,7 @@ main (int argc, char *argv[])
       kill (p, SIGKILL);
       wait (NULL);
       // Test non-existing process
-      assert ((get_nch (p) == -1) && (errno == ESRCH));
+      assert ((get_nch (p) == -1) && (errno == ESRCH), "ESRCH=%d, errno=%d", ESRCH, errno);
     }
 
   // Test NTESTS randomly created child processes with up to MAX_CH channels

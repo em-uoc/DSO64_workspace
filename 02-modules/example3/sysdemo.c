@@ -13,7 +13,7 @@ static int target_pid = 0;
 static struct kobject *sysdemo_kobj;
 
 /* Module Parameter Callback (/sys/module/sysdemo/parameters/target_pid) */
-static int set_target_pid_param(const char *val, const struct kernel_param *kp)
+static int param_set_target_pid(const char *val, const struct kernel_param *kp)
 {
     int new_pid;
     int err;
@@ -30,7 +30,7 @@ static int set_target_pid_param(const char *val, const struct kernel_param *kp)
 }
 
 static const struct kernel_param_ops target_pid_ops = {
-    .set = set_target_pid_param,
+    .set = param_set_target_pid,
     .get = param_get_int,
 };
 
