@@ -13,7 +13,7 @@ MODULE_DESCRIPTION("Communication through /proc");
 
 #define PROC_ENTRY "procdemo"
 
-static int target_pid = 0;
+static pid_t target_pid = 0;
 
 /* Read callback: displays target_pid data */
 static int proc_read_show(struct seq_file *m, void *v)
@@ -54,7 +54,7 @@ static ssize_t proc_write_cb(struct file *f, const char __user *buff, size_t len
 {
 #define MAX_LEN 16
     char kbuf[MAX_LEN];
-    int parsed_pid;
+    pid_t parsed_pid;
     int err;
 
     if (len >= sizeof(kbuf))
@@ -65,8 +65,8 @@ static ssize_t proc_write_cb(struct file *f, const char __user *buff, size_t len
 
     kbuf[len] = '\0';
 
-    err = kstrtoint(strstrip(kbuf), 10, &parsed_pid);
-    if (err || parsed_pid < 0) {
+    err = kstrtouint(kbuf, 10, &parsed_pid);
+    if (err) {
         pr_warn("Invalid PID written to /proc/%s\n", PROC_ENTRY);
         return -EINVAL;
     }

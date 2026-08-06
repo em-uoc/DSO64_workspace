@@ -36,6 +36,10 @@ main (int argc, char *argv[])
       close (fd);
     }
 
+  if (nbytes == 0)  // To make, at least, one write
+      if (write (channel, buf, 0) != 0)
+        error (1, errno, "Error write() zero");
+
   while (nbytes >= BUFSIZE)
     {
       if (write (channel, buf, BUFSIZE) != BUFSIZE)

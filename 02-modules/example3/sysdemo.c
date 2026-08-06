@@ -9,17 +9,17 @@
 MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("Communication through /sys");
 
-static int target_pid = 0;
+static pid_t target_pid = 0;
 static struct kobject *sysdemo_kobj;
 
 /* Module Parameter Callback (/sys/module/sysdemo/parameters/target_pid) */
 static int param_set_target_pid(const char *val, const struct kernel_param *kp)
 {
-    int new_pid;
+    pid_t new_pid;
     int err;
 
-    err = kstrtoint(strstrip((char *)val), 10, &new_pid);
-    if (err || new_pid < 0) {
+    err = kstrtouint(strstrip((char *)val), 10, &new_pid);
+    if (err) {
         pr_warn("Invalid PID set via module parameter\n");
         return -EINVAL;
     }
@@ -31,7 +31,7 @@ static int param_set_target_pid(const char *val, const struct kernel_param *kp)
 
 static const struct kernel_param_ops target_pid_ops = {
     .set = param_set_target_pid,
-    .get = param_get_int,
+    .get = param_get_uint,
 };
 
 module_param_cb(target_pid, &target_pid_ops, &target_pid, 0644);
