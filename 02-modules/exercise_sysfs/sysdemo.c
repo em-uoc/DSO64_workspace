@@ -24,7 +24,7 @@ static int param_set_target_pid(const char *val, const struct kernel_param *kp)
     pid_t new_pid;
     int err;
 
-    err = kstrtouint(strstrip((char *)val), 10, &new_pid);
+    err = kstrtoint(strstrip((char *)val), 10, &new_pid);
     if (err) {
         pr_warn("Invalid PID set via module parameter\n");
         return -EINVAL;
@@ -37,7 +37,7 @@ static int param_set_target_pid(const char *val, const struct kernel_param *kp)
 
 static const struct kernel_param_ops target_pid_ops = {
     .set = param_set_target_pid,
-    .get = param_get_uint,
+    .get = param_get_int,
 };
 
 module_param_cb(target_pid, &target_pid_ops, &target_pid, 0644);
@@ -74,66 +74,60 @@ static unsigned int count_open_fds(struct task_struct *task)
     return count;
 }
 
+static struct task_struct *get_target_task(pid_t pid)
+{
+    struct task_struct *task;
+
+    if (pid < 0)
+        return NULL;
+
+    if (pid == 0) {
+        task = current;
+        get_task_struct(task);
+        return task;
+    }
+
+    rcu_read_lock();
+    task = pid_task(find_vpid(pid), PIDTYPE_PID);
+    if (task)
+        get_task_struct(task);
+    rcu_read_unlock();
+
+    return task;
+}
+
 static ssize_t nch_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
 {
+    pid_t pid = READ_ONCE(target_pid);
     struct task_struct *task;
     unsigned int count;
 
-    if (target_pid < 0)
-    return sysfs_emit(buf, "-1\n");
-
-    if (target_pid == 0) {
-        task = current;
-        get_task_struct(task); /* Adquire task_struct */
-    } else {
-        /* Look for processes */
-        rcu_read_lock();
-        task = pid_task(find_vpid(target_pid), PIDTYPE_PID);
-        if (!task) {
-            rcu_read_unlock();
-    		return sysfs_emit(buf, "-1\n"); /* Does not exit */
-        }
-        get_task_struct(task); /* Adquire task_struct */
-        rcu_read_unlock();
-    }
+    task = get_target_task(pid);
+    if (!task)
+        return sysfs_emit(buf, "-1\n");
 
     count = count_open_fds(task);
-
-    /* Release task struct */
     put_task_struct(task);
 
-    return sysfs_emit(buf, "%d\n", count);
+    if (task == current) count--; // Because accessing /sys/... with fopen is increasing by 1 the number of open files
+
+    return sysfs_emit(buf, "%u\n", count);
 }
 
 static ssize_t errno_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
 {
+    pid_t pid = READ_ONCE(target_pid);
     struct task_struct *task;
-//    unsigned int count;
 
-    if (target_pid < 0)
-    return sysfs_emit(buf, "%d\n", EINVAL);
+    if (pid < 0)
+        return sysfs_emit(buf, "%d\n", EINVAL);
 
-    if (target_pid == 0) {
-        task = current;
-        get_task_struct(task); /* Adquire task_struct */
-    } else {
-        /* Look for processes */
-        rcu_read_lock();
-        task = pid_task(find_vpid(target_pid), PIDTYPE_PID);
-        if (!task) {
-            rcu_read_unlock();
-    	return sysfs_emit(buf, "%d\n", ESRCH);
-        }
-        get_task_struct(task); /* Adquire task_struct */
-        rcu_read_unlock();
-    }
+    task = get_target_task(pid);
+    if (!task)
+        return sysfs_emit(buf, "%d\n", ESRCH);
 
-//    count = count_open_fds(task);
-
-    /* Release task struct */
     put_task_struct(task);
-
-   return sysfs_emit(buf, "%lu\n", 0L);
+    return sysfs_emit(buf, "0\n");
 }
 
 static struct kobj_attribute nch_attribute   = __ATTR_RO(nch);
