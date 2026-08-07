@@ -7,4 +7,5 @@
 *.mod
 *.mod.c
 *.c~
+*.h~
 *.c.swp

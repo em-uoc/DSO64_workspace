@@ -19,6 +19,7 @@ static pid_t target_pid = 0;
 static int proc_read_show(struct seq_file *m, void *v)
 {
     struct task_struct *task;
+    struct mm_struct *mm;
     pid_t current_pid = READ_ONCE(target_pid);
 
     if (!current_pid) {
@@ -26,11 +27,14 @@ static int proc_read_show(struct seq_file *m, void *v)
         return 0;
     }
 
+    /* Safely get task_struct using RCU */
     rcu_read_lock();
-
     task = pid_task(find_vpid(current_pid), PIDTYPE_PID);
+    if (task)
+        get_task_struct(task); // increments reference count of this task structure 
+    rcu_read_unlock();
+
     if (!task) {
-        rcu_read_unlock();
         seq_printf(m, "pid %d does not exist\n", current_pid);
         return 0;
     }
@@ -40,14 +44,15 @@ static int proc_read_show(struct seq_file *m, void *v)
     seq_printf(m, "  Voluntary context switches %lu\n", task->nvcsw);
     seq_printf(m, "  Involuntary context switches %lu\n", task->nivcsw);
 
-    struct mm_struct *mm = get_task_mm(task);
+    mm = get_task_mm(task); // increments reference count of this mm structure
     seq_printf(m, "  Page table address (pgd) %px\n", mm ? mm->pgd : NULL);
     if (mm)
-        mmput(mm);
+        mmput(mm); // decreases reference count of this mm structure
 
-    rcu_read_unlock();
+    put_task_struct(task);  // decreases reference count of this task structure
     return 0;
 }
+
 
 /* Write callback: updates target_pid from user input */
 static ssize_t proc_write_cb(struct file *f, const char __user *buff, size_t len, loff_t *o)

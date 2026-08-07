@@ -9,6 +9,8 @@
 #include <signal.h>
 #include <string.h>
 
+#include "get_nch.h"
+
 // Custom assert 
 #define assert(expr, ...) do { \
     int ok = !!(expr); \
@@ -23,15 +25,6 @@
 #define MAX_CH 200              // Max number of channels at each test
 
 int max_ch;                     // System-wide limit on the number of channels of each process
-
-#define __NR_get_nch 602        // syscall code
-
-long
-get_nch (pid_t pid)
-{
-  return syscall (__NR_get_nch, pid);
-}
-
 
 void
 test_random (int n)

@@ -8,12 +8,17 @@ else
 
 all: modules test_nch
 
-CFLAGS=-static
+LDFLAGS=-static
+
+PROGS = test_nch
+test_nch: test_nch.o get_nch.o
+test_nch.o: get_nch.h
 
 modules:
 	$(MAKE) -C $(KERNELDIR) M=$(PWD) modules
 
 clean:
 	$(MAKE) -C $(KERNELDIR) M=$(PWD) clean
+	rm -rf $(PROGS)
 
 endif
