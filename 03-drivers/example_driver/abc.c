@@ -3,6 +3,8 @@
  *
  */
 
+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+
 #include <linux/module.h>
 
 #define DRIVER_MAJOR 231
@@ -131,11 +133,11 @@ abc_init (void)
   result = register_chrdev (DRIVER_MAJOR, DRIVER_NAME, &abc_op);
   if (result < 0)
     {
-      printk ("Unable to register device\n");
+      pr_err ("Unable to register device\n");
       return result;
     }
 
-  printk (KERN_INFO "abc driver correctly installed\n");
+  pr_info ("abc driver correctly installed\n");
   return (0);
 }
 
@@ -143,7 +145,7 @@ static void __exit
 abc_cleanup (void)
 {
   unregister_chrdev (DRIVER_MAJOR, DRIVER_NAME);
-  printk (KERN_INFO "abc Cleanup successful\n");
+  pr_info ("abc Cleanup successful\n");
 }
 
 module_init (abc_init);

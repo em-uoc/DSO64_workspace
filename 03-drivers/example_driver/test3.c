@@ -3,10 +3,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 
 #define NAME "/dev/ex3"
 
-#define error(miss) { fprintf(stderr, "ERROR (line %d): %s\n", __LINE__, miss); exit(1); }
+#define error(miss) { fprintf(stderr, "ERROR (line %d): %s\n", __LINE__, miss); if (errno) fprintf(stderr, "%d: %s\n", errno, strerror(errno)); exit(1); }
 
 #define TESTING(msg) fprintf(stderr, "\n\n%s...", msg);
 #define TESTINGOK() fprintf(stderr, "OK\n");

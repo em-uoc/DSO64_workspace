@@ -6,11 +6,11 @@ else
 
 .PHONY: all modules clean
 
-all: modules test_nch
-
-LDFLAGS=-static
-
 PROGS = test_nch
+LDFLAGS = -static
+
+all: modules $(PROGS)
+
 test_nch: test_nch.o get_nch.o
 test_nch.o: get_nch.h
 
@@ -20,5 +20,4 @@ modules:
 clean:
 	$(MAKE) -C $(KERNELDIR) M=$(PWD) clean
 	rm -rf $(PROGS)
-
 endif

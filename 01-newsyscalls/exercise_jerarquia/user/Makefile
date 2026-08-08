@@ -1,6 +1,5 @@
-
 PROGS  = testnew1 testnew2
-CFLAGS = -static
+LDFLAGS = -static
 
 all: $(PROGS)
 

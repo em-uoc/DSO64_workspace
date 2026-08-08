@@ -1,4 +1,3 @@
-
 PROGS   = test_nch
 LDFLAGS = -static
 

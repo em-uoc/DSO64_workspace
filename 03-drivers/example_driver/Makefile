@@ -1,20 +1,20 @@
 ifneq ($(KERNELRELEASE),)
-
-obj-m := abc.o 
- 
+	obj-m := abc.o 
 else
 	KERNELDIR := ../../../$$LINUX_VERSION
 	PWD := $(shell pwd)
-	USERPROG := test3
 
-all: modules $(USERPROG)
+.PHONY: all modules clean
+
+PROGS = test3
+LDFLAGS = -static
+
+all: modules $(PROGS)
 
 modules:
 	$(MAKE) -C $(KERNELDIR) M=$(PWD) modules
 
-test3: test3.c
-	gcc -static test3.c -o test3
-
 clean:
-	rm -rf *.[oas] .*.flags *.ko .*.cmd .*.d .*.tmp *.mod.c .tmp_versions test6 Module.symvers *.mod *.order $(USERPROG)
+	$(MAKE) -C $(KERNELDIR) M=$(PWD) clean
+	rm -rf $(PROGS)
 endif
