@@ -10,7 +10,7 @@ static unsigned int count_open_fds(struct task_struct *task)
     struct files_struct *files;
     struct fdtable *fdt;
     unsigned int count = 0;
-    int i;
+    unsigned int i;
 
     if (!task)
         return 0;
@@ -26,11 +26,8 @@ static unsigned int count_open_fds(struct task_struct *task)
 
     /* Traverse fdtable */
     for (i = 0; i < fdt->max_fds; i++) {
-        struct file *file = rcu_dereference_raw(fdt->fd[i]);
-
-        if (file) {
+        if (rcu_dereference_raw(fdt->fd[i]))
             count++;
-        }
     }
 
     return count;

@@ -1,3 +1,36 @@
+#include <linux/sched.h>
+#include <linux/fdtable.h>
 
-TBD
+/* Returns number of open files of a task_struct.
+   Assumes that task_struct is already under rcu protection 
+   Naive implementation traversing fdtable, without using bitmap
+*/
+
+static unsigned int count_open_fds(struct task_struct *task)
+{
+    struct files_struct *files;
+    struct fdtable *fdt;
+    unsigned int count = 0;
+    unsigned int i;
+
+    if (!task)
+        return 0;
+
+    files = task->files;
+    if (!files)
+        return 0; /* Just in case */
+
+    /* Get fdtable */
+    fdt = rcu_dereference_raw(files->fdt);
+    if (!fdt || !fdt->fd)
+        return 0;
+
+    /* Traverse fdtable */
+    for (i = 0; i < fdt->max_fds; i++) {
+        if (rcu_dereference_raw(fdt->fd[i]))
+            count++;
+    }
+
+    return count;
+}
 
