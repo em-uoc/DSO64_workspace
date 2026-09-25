@@ -8,7 +8,7 @@ MODULE_DESCRIPTION("kprobe example (captures open syscall)");
 
 #define TRACE_FILE 	"/etc/passwd"
 
-static int handler_pre(struct kprobe *p, struct pt_regs *regs)
+static int pre_handler(struct kprobe *p, struct pt_regs *regs)
 {
     /* do_sys_openat2(int dfd, const char __user *filename, struct open_how *how)
      * Arg 0: dfd
@@ -29,7 +29,7 @@ static int handler_pre(struct kprobe *p, struct pt_regs *regs)
 
 static struct kprobe kp = {
     .symbol_name = "do_sys_openat2",
-    .pre_handler = handler_pre,
+    .pre_handler = pre_handler,
 };
 
 static int __init kprobe_init(void)
