@@ -3,7 +3,7 @@
 rm -f workspace.zip
 ln -s . workspace
 
-zip workspace.zip \
+zip -r --symlinks workspace.zip \
 	workspace/01-newsyscalls/example1/kernel/newsyscall.c \
 	workspace/01-newsyscalls/example1/user/Makefile \
 	workspace/01-newsyscalls/example1/user/test1.c \
